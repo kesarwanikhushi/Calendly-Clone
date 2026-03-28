@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const navItems = [
   { path: "/", label: "Event Types", icon: "M4 4h8v2H4V4zm0 4h12v2H4V8zm0 4h10v2H4v-2z" },
@@ -9,6 +10,13 @@ const navItems = [
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="min-h-screen bg-surface">
@@ -53,16 +61,27 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="px-4 py-3 border-t border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold">
-              A
+        <div className="px-4 py-3 border-t border-border mt-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white text-sm font-semibold shadow-sm">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </div>
-            <div>
-              <p className="text-sm font-medium text-text-primary">Admin</p>
-              <p className="text-xs text-text-secondary">admin@calendly.com</p>
+            <div className="overflow-hidden flex-1">
+              <p className="text-sm font-medium text-text-primary truncate">{user?.name || "User"}</p>
+              <p className="text-xs text-text-secondary truncate">{user?.email || "user@example.com"}</p>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-error hover:bg-red-50 rounded-md transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Sign out
+          </button>
         </div>
       </aside>
 

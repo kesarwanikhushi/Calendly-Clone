@@ -5,6 +5,7 @@ const { sendCancellationNotification, sendRescheduleConfirmation } = require("..
 async function list(req, res, next) {
   try {
     const meetings = await prisma.meeting.findMany({
+      where: { eventType: { userId: req.user.id } },
       include: {
         eventType: true,
         answers: true,
@@ -31,6 +32,10 @@ async function getById(req, res, next) {
       return res.status(404).json({ error: "Meeting not found" });
     }
 
+    if (meeting.eventType.userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
     res.json(meeting);
   } catch (err) {
     next(err);
@@ -49,6 +54,10 @@ async function patch(req, res, next) {
 
     if (!meeting) {
       return res.status(404).json({ error: "Meeting not found" });
+    }
+
+    if (meeting.eventType.userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
     }
 
     if (status === "cancelled") {

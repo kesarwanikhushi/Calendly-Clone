@@ -19,7 +19,7 @@ async function getSlots(req, res, next) {
     const dayOfWeek = getDay(parsedDate);
 
     const override = await prisma.availabilityOverride.findFirst({
-      where: { date },
+      where: { date, userId: eventType.userId },
     });
 
     let startTime, endTime, timezone;
@@ -31,11 +31,13 @@ async function getSlots(req, res, next) {
       startTime = override.startTime;
       endTime = override.endTime;
 
-      const avail = await prisma.availability.findFirst();
+      const avail = await prisma.availability.findFirst({
+        where: { userId: eventType.userId },
+      });
       timezone = avail ? avail.timezone : "UTC";
     } else {
       const availability = await prisma.availability.findFirst({
-        where: { dayOfWeek },
+        where: { dayOfWeek, userId: eventType.userId },
       });
 
       if (!availability) {

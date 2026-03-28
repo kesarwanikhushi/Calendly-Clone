@@ -7,8 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                    Int                    @id @default(autoincrement())
+  name                  String
+  email                 String                 @unique
+  password              String
+  createdAt             DateTime               @default(now())
+  eventTypes            EventType[]
+  availabilities        Availability[]
+  availabilityOverrides AvailabilityOverride[]
+}
+
 model EventType {
   id           Int        @id @default(autoincrement())
+  userId       Int
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   name         String
   duration     Int
   slug         String     @unique
@@ -21,6 +34,8 @@ model EventType {
 
 model Availability {
   id        Int    @id @default(autoincrement())
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   dayOfWeek Int
   startTime String
   endTime   String
@@ -29,6 +44,8 @@ model Availability {
 
 model AvailabilityOverride {
   id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date      String
   startTime String?
   endTime   String?

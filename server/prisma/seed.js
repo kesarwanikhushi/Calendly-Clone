@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const { addDays, addHours, subDays } = require("date-fns");
+const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
@@ -10,9 +11,20 @@ async function main() {
   await prisma.eventType.deleteMany();
   await prisma.availability.deleteMany();
   await prisma.availabilityOverride.deleteMany();
+  await prisma.user.deleteMany();
+
+  const hashedPassword = await bcrypt.hash("password123", 10);
+  const testUser = await prisma.user.create({
+    data: {
+      name: "Admin User",
+      email: "admin@calendly.com",
+      password: hashedPassword,
+    },
+  });
 
   const quickChat = await prisma.eventType.create({
     data: {
+      userId: testUser.id,
       name: "Quick Chat",
       duration: 15,
       slug: "quick-chat",
@@ -23,6 +35,7 @@ async function main() {
 
   const techInterview = await prisma.eventType.create({
     data: {
+      userId: testUser.id,
       name: "Technical Interview",
       duration: 60,
       slug: "technical-interview",
@@ -41,6 +54,7 @@ async function main() {
   for (const day of days) {
     await prisma.availability.create({
       data: {
+        userId: testUser.id,
         dayOfWeek: day,
         startTime: "09:00",
         endTime: "17:00",

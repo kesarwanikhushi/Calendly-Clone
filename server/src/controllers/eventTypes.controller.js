@@ -3,6 +3,7 @@ const prisma = require("../lib/prisma");
 async function list(req, res, next) {
   try {
     const eventTypes = await prisma.eventType.findMany({
+      where: { userId: req.user.id },
       include: { questions: { orderBy: { order: "asc" } } },
       orderBy: { createdAt: "desc" },
     });
@@ -23,6 +24,7 @@ async function create(req, res, next) {
 
     const eventType = await prisma.eventType.create({
       data: {
+        userId: req.user.id,
         name,
         duration,
         slug,
@@ -51,6 +53,11 @@ async function update(req, res, next) {
       return res.status(409).json({ error: "Slug already exists" });
     }
 
+    const currentData = await prisma.eventType.findUnique({ where: { id: Number(id) } });
+    if (!currentData || currentData.userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
     await prisma.question.deleteMany({ where: { eventTypeId: Number(id) } });
 
     const eventType = await prisma.eventType.update({
@@ -77,6 +84,11 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
   try {
     const { id } = req.params;
+
+    const currentData = await prisma.eventType.findUnique({ where: { id: Number(id) } });
+    if (!currentData || currentData.userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
 
     const activeMeetings = await prisma.meeting.count({
       where: {

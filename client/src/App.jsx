@@ -8,13 +8,22 @@ import BookingPage from './pages/BookingPage'
 import ConfirmedPage from './pages/ConfirmedPage'
 import ReschedulePage from './pages/ReschedulePage'
 
+import ProtectedRoute from './components/ProtectedRoute'
+import Login from './pages/Login'
+import Register from './pages/Register'
+
 function App() {
   return (
     <Routes>
-      <Route element={<AdminLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/availability" element={<Availability />} />
-        <Route path="/meetings" element={<Meetings />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      
+      <Route element={<ProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/availability" element={<Availability />} />
+          <Route path="/meetings" element={<Meetings />} />
+        </Route>
       </Route>
       <Route element={<PublicLayout />}>
         <Route path="/book/:slug" element={<BookingPage />} />

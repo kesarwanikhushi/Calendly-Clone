@@ -3,6 +3,7 @@ const prisma = require("../lib/prisma");
 async function list(req, res, next) {
   try {
     const overrides = await prisma.availabilityOverride.findMany({
+      where: { userId: req.user.id },
       orderBy: { date: "asc" },
     });
     res.json(overrides);
@@ -17,6 +18,7 @@ async function create(req, res, next) {
 
     const override = await prisma.availabilityOverride.create({
       data: {
+        userId: req.user.id,
         date,
         startTime: isBlocked ? null : startTime,
         endTime: isBlocked ? null : endTime,
@@ -32,6 +34,11 @@ async function create(req, res, next) {
 
 async function remove(req, res, next) {
   try {
+    const current = await prisma.availabilityOverride.findUnique({ where: { id: Number(req.params.id) } });
+    if (!current || current.userId !== req.user.id) {
+      return res.status(403).json({ error: "Unauthorized" });
+    }
+
     await prisma.availabilityOverride.delete({
       where: { id: Number(req.params.id) },
     });
