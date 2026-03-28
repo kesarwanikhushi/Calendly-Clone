@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EventType {
+  id           Int        @id @default(autoincrement())
+  name         String
+  duration     Int
+  slug         String     @unique
+  bufferBefore Int        @default(0)
+  bufferAfter  Int        @default(0)
+  questions    Question[]
+  meetings     Meeting[]
+  createdAt    DateTime   @default(now())
+}
+
+model Availability {
+  id        Int    @id @default(autoincrement())
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  timezone  String @default("UTC")
+}
+
+model AvailabilityOverride {
+  id        Int      @id @default(autoincrement())
+  date      String
+  startTime String?
+  endTime   String?
+  isBlocked Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id          Int       @id @default(autoincrement())
+  eventTypeId Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  label       String
+  required    Boolean   @default(false)
+  order       Int
+}
+
+model Meeting {
+  id           Int       @id @default(autoincrement())
+  eventTypeId  Int
+  eventType    EventType @relation(fields: [eventTypeId], references: [id])
+  inviteeName  String
+  inviteeEmail String
+  startTime    DateTime
+  endTime      DateTime
+  status       String    @default("active")
+  answers      Answer[]
+  createdAt    DateTime  @default(now())
+}
+
+model Answer {
+  id         Int     @id @default(autoincrement())
+  meetingId  Int
+  meeting    Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  questionId Int
+  value      String
+}
