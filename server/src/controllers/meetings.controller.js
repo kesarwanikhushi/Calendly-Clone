@@ -49,7 +49,7 @@ async function patch(req, res, next) {
 
     const meeting = await prisma.meeting.findUnique({
       where: { id: Number(id) },
-      include: { eventType: true },
+      include: { eventType: { include: { user: true } } },
     });
 
     if (!meeting) {
@@ -64,7 +64,7 @@ async function patch(req, res, next) {
       const updated = await prisma.meeting.update({
         where: { id: Number(id) },
         data: { status: "cancelled" },
-        include: { eventType: true, answers: true },
+        include: { eventType: { include: { user: true } }, answers: true },
       });
 
       await sendCancellationNotification(updated, updated.eventType);
@@ -94,7 +94,7 @@ async function patch(req, res, next) {
       const updated = await prisma.meeting.update({
         where: { id: Number(id) },
         data: { startTime: newStart, endTime: newEnd },
-        include: { eventType: true, answers: true },
+        include: { eventType: { include: { user: true } }, answers: true },
       });
 
       await sendRescheduleConfirmation(updated, updated.eventType);

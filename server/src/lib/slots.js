@@ -1,5 +1,5 @@
 const { addMinutes, subMinutes } = require("date-fns");
-const { zonedTimeToUtc } = require("date-fns-tz");
+const { fromZonedTime } = require("date-fns-tz");
 
 function computeFreeSlots(startTime, endTime, duration, bufferBefore, bufferAfter, bookedMeetings, date, timezone) {
   const [startH, startM] = startTime.split(":").map(Number);
@@ -7,8 +7,8 @@ function computeFreeSlots(startTime, endTime, duration, bufferBefore, bufferAfte
 
   // Construct UTC instants for the interval boundaries by interpreting the
   // provided date and times in the given timezone.
-  const utcStart = zonedTimeToUtc(`${date} ${startTime}`, timezone);
-  const utcEnd = zonedTimeToUtc(`${date} ${endTime}`, timezone);
+  const utcStart = fromZonedTime(`${date} ${startTime}`, timezone);
+  const utcEnd = fromZonedTime(`${date} ${endTime}`, timezone);
 
   const slots = [];
   let cursor = utcStart;
@@ -20,9 +20,12 @@ function computeFreeSlots(startTime, endTime, duration, bufferBefore, bufferAfte
       const blockedEnd = addMinutes(new Date(m.endTime), bufferAfter);
       return cursor < blockedEnd && slotEnd > blockedStart;
     });
-    if (!overlaps) {
-      slots.push(cursor.toISOString());
-    }
+    
+    slots.push({
+      time: cursor.toISOString(),
+      available: !overlaps
+    });
+    
     cursor = addMinutes(cursor, duration);
   }
 

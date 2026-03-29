@@ -1,6 +1,6 @@
 const prisma = require("../lib/prisma");
 const { addMinutes, subMinutes } = require("date-fns");
-const { sendBookingConfirmation } = require("../lib/mailer");
+const { sendBookingConfirmation, sendRescheduleConfirmation } = require("../lib/mailer");
 
 async function book(req, res, next) {
   try {
@@ -12,7 +12,10 @@ async function book(req, res, next) {
 
     const eventType = await prisma.eventType.findUnique({
       where: { slug },
-      include: { questions: { orderBy: { order: "asc" } } },
+      include: { 
+        questions: { orderBy: { order: "asc" } },
+        user: true,
+      },
     });
 
     if (!eventType) {
@@ -120,7 +123,7 @@ async function rescheduleMeeting(req, res, next) {
 
     const existingMeeting = await prisma.meeting.findUnique({
       where: { id: Number(id) },
-      include: { eventType: true }
+      include: { eventType: { include: { user: true } } }
     });
 
     if (!existingMeeting) {
@@ -158,12 +161,12 @@ async function rescheduleMeeting(req, res, next) {
         endTime: meetingEnd,
       },
       include: {
-        eventType: true,
+        eventType: { include: { user: true } },
         answers: true,
       },
     });
 
-    await sendBookingConfirmation(updatedMeeting, eventType);
+    await sendRescheduleConfirmation(updatedMeeting, eventType);
 
     res.json(updatedMeeting);
   } catch (err) {

@@ -19,19 +19,31 @@ export default function SlotGrid({ slots, selectedSlot, onSelect, loading }) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {slots.map((slot) => {
-        const time = typeof slot === "string" ? parseISO(slot) : slot;
-        const isSelected = selectedSlot === slot;
+      {slots.map((slotObj) => {
+        // Handle both older string-based formats and the new object format backwards compatibly
+        const isString = typeof slotObj === "string";
+        const timeStr = isString ? slotObj : slotObj.time;
+        const available = isString ? true : slotObj.available;
+        
+        const time = parseISO(timeStr);
+        const isSelected = selectedSlot === timeStr;
+        
+        let buttonClass = "px-3 py-2.5 text-sm font-medium rounded-md border transition-all duration-150 ";
+        if (!available) {
+          buttonClass += "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60";
+        } else if (isSelected) {
+          buttonClass += "bg-primary text-white border-primary shadow-sm cursor-pointer";
+        } else {
+          buttonClass += "bg-white text-primary border-border hover:border-primary hover:bg-primary-light cursor-pointer";
+        }
+
         return (
           <button
-            key={slot}
+            key={timeStr}
             type="button"
-            onClick={() => onSelect(slot)}
-            className={`px-3 py-2.5 text-sm font-medium rounded-md border transition-all duration-150 cursor-pointer ${
-              isSelected
-                ? "bg-primary text-white border-primary shadow-sm"
-                : "bg-white text-primary border-border hover:border-primary hover:bg-primary-light"
-            }`}
+            disabled={!available}
+            onClick={() => available && onSelect(timeStr)}
+            className={buttonClass}
           >
             {format(time, "h:mm a")}
           </button>
