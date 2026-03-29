@@ -18,35 +18,47 @@ async function getSlots(req, res, next) {
     const parsedDate = parseISO(date);
     const dayOfWeek = getDay(parsedDate);
 
+    // Default to the first schedule of the user if the eventType has no bound schedule
+    let scheduleId = eventType.scheduleId;
+    if (!scheduleId) {
+      const defaultSchedule = await prisma.schedule.findFirst({
+        where: { userId: eventType.userId },
+        orderBy: { isDefault: "desc" }
+      });
+      if (!defaultSchedule) return res.json([]);
+      scheduleId = defaultSchedule.id;
+    }
+
     const override = await prisma.availabilityOverride.findFirst({
-      where: { date, userId: eventType.userId },
+      where: { date, scheduleId },
     });
 
-    let startTime, endTime, timezone;
+    let intervals = [];
+    let timezone;
 
     if (override) {
       if (override.isBlocked) {
         return res.json([]);
       }
-      startTime = override.startTime;
-      endTime = override.endTime;
+      intervals.push({ startTime: override.startTime, endTime: override.endTime });
 
-      const avail = await prisma.availability.findFirst({
-        where: { userId: eventType.userId },
+      const sched = await prisma.schedule.findUnique({
+        where: { id: scheduleId },
       });
-      timezone = avail ? avail.timezone : "UTC";
+      timezone = sched ? sched.timezone : "UTC";
     } else {
-      const availability = await prisma.availability.findFirst({
-        where: { dayOfWeek, userId: eventType.userId },
+      const availabilities = await prisma.availability.findMany({
+        where: { dayOfWeek, scheduleId },
       });
 
-      if (!availability) {
+      if (!availabilities || availabilities.length === 0) {
         return res.json([]);
       }
 
-      startTime = availability.startTime;
-      endTime = availability.endTime;
-      timezone = availability.timezone;
+      for (const avail of availabilities) {
+        intervals.push({ startTime: avail.startTime, endTime: avail.endTime });
+      }
+      timezone = availabilities[0].timezone || "UTC";
     }
 
     const dayStart = startOfDay(parsedDate);
@@ -55,22 +67,28 @@ async function getSlots(req, res, next) {
     const bookedMeetings = await prisma.meeting.findMany({
       where: {
         eventTypeId: eventType.id,
-        status: "active",
         startTime: { gte: dayStart },
         endTime: { lte: dayEnd },
       },
     });
 
-    const slots = computeFreeSlots(
-      startTime,
-      endTime,
-      eventType.duration,
-      eventType.bufferBefore,
-      eventType.bufferAfter,
-      bookedMeetings,
-      date,
-      timezone
-    );
+    let slots = [];
+    for (const interval of intervals) {
+      const intervalSlots = computeFreeSlots(
+        interval.startTime,
+        interval.endTime,
+        eventType.duration,
+        eventType.bufferBefore,
+        eventType.bufferAfter,
+        bookedMeetings,
+        date,
+        timezone
+      );
+      slots = slots.concat(intervalSlots);
+    }
+    
+    // Sort slots just in case intervals were out of order
+    slots.sort();
 
     res.json(slots);
   } catch (err) {

@@ -19,3 +19,7 @@ export function rescheduleMeeting(id, startTime, endTime) {
 export function bookMeeting(data) {
   return api.post("/api/book", data);
 }
+
+export function fetchPublicMeeting(id) {
+  return api.get(`/api/book/meetings/${id}`);
+}

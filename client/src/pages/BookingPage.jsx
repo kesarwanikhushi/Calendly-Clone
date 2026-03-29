@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchEventTypes } from "../api/eventTypes";
+import { fetchPublicEventType } from "../api/eventTypes";
 import { fetchSlots } from "../api/slots";
 import { bookMeeting } from "../api/meetings";
 import CalendarPicker from "../components/booking/CalendarPicker";
@@ -27,22 +27,21 @@ export default function BookingPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadEventType() {
+    async function load() {
       try {
-        const res = await fetchEventTypes();
-        const found = res.data.find((et) => et.slug === slug);
-        if (!found) {
+        const res = await fetchPublicEventType(slug);
+        setEventType(res.data);
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
           setNotFound(true);
         } else {
-          setEventType(found);
+          setError("Failed to load event details");
         }
-      } catch {
-        setError("Failed to load event details");
       } finally {
         setLoading(false);
       }
     }
-    loadEventType();
+    if (slug) load();
   }, [slug]);
 
   useEffect(() => {

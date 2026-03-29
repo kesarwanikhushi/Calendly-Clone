@@ -2,8 +2,14 @@ const prisma = require("../lib/prisma");
 
 async function list(req, res, next) {
   try {
+    const { scheduleId } = req.query;
+    if (!scheduleId) return res.status(400).json({ error: "scheduleId is required" });
+
     const overrides = await prisma.availabilityOverride.findMany({
-      where: { userId: req.user.id },
+      where: { 
+        scheduleId: Number(scheduleId),
+        schedule: { userId: req.user.id } 
+      },
       orderBy: { date: "asc" },
     });
     res.json(overrides);
@@ -14,11 +20,17 @@ async function list(req, res, next) {
 
 async function create(req, res, next) {
   try {
-    const { date, startTime, endTime, isBlocked } = req.body;
+    const { scheduleId, date, startTime, endTime, isBlocked } = req.body;
+    if (!scheduleId) return res.status(400).json({ error: "scheduleId is required" });
+
+    const schedule = await prisma.schedule.findFirst({
+      where: { id: Number(scheduleId), userId: req.user.id }
+    });
+    if (!schedule) return res.status(403).json({ error: "Unauthorized" });
 
     const override = await prisma.availabilityOverride.create({
       data: {
-        userId: req.user.id,
+        scheduleId: Number(scheduleId),
         date,
         startTime: isBlocked ? null : startTime,
         endTime: isBlocked ? null : endTime,
@@ -34,8 +46,12 @@ async function create(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const current = await prisma.availabilityOverride.findUnique({ where: { id: Number(req.params.id) } });
-    if (!current || current.userId !== req.user.id) {
+    const current = await prisma.availabilityOverride.findUnique({ 
+      where: { id: Number(req.params.id) },
+      include: { schedule: true }
+    });
+
+    if (!current || current.schedule.userId !== req.user.id) {
       return res.status(403).json({ error: "Unauthorized" });
     }
 

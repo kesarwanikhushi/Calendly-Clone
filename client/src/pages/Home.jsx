@@ -1,11 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { fetchEventTypes, createEventType, updateEventType, deleteEventType } from "../api/eventTypes";
+import { useAuth } from "../context/AuthContext";
 import EventTypeCard from "../components/admin/EventTypeCard";
 import EventTypeForm from "../components/admin/EventTypeForm";
 import Modal from "../components/ui/Modal";
 import Button from "../components/ui/Button";
 
 export default function Home() {
+  const { user } = useAuth();
   const [eventTypes, setEventTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -84,6 +87,11 @@ export default function Home() {
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Event Types</h1>
           <p className="text-sm text-text-secondary mt-1">Create and manage your scheduling events</p>
+          {user && (
+            <p className="text-sm text-primary mt-2">
+              Your public profile: <Link to={`/u/${user.id}`} className="hover:underline">{window.location.origin}/u/{user.id}</Link>
+            </p>
+          )}
         </div>
         <Button onClick={handleCreate} id="create-event-type-btn">
           + New Event Type

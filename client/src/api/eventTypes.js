@@ -15,3 +15,7 @@ export function updateEventType(id, data) {
 export function deleteEventType(id) {
   return api.delete(`/api/event-types/${id}`);
 }
+
+export function fetchPublicEventType(slug) {
+  return api.get(`/api/book/types/${slug}`);
+}

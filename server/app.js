@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const eventTypesRouter = require("./src/routes/eventTypes");
+const schedulesRouter = require("./src/routes/schedules");
 const availabilityRouter = require("./src/routes/availability");
 const overridesRouter = require("./src/routes/overrides");
 const slotsRouter = require("./src/routes/slots");
@@ -22,6 +23,7 @@ app.use("/api/slots", slotsRouter);
 app.use("/api/book", bookRouter);
 
 // Protected admin routes
+app.use("/api/schedules", authenticate, schedulesRouter);
 app.use("/api/event-types", authenticate, eventTypesRouter);
 app.use("/api/availability", authenticate, availabilityRouter);
 app.use("/api/overrides", authenticate, overridesRouter);

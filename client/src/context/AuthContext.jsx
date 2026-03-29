@@ -35,12 +35,16 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const res = await api.post("/api/auth/login", { email, password });
+    localStorage.setItem("calendly_token", res.data.token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
     setToken(res.data.token);
     setUser(res.data.user);
   };
 
   const register = async (name, email, password) => {
     const res = await api.post("/api/auth/register", { name, email, password });
+    localStorage.setItem("calendly_token", res.data.token);
+    api.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
     setToken(res.data.token);
     setUser(res.data.user);
   };

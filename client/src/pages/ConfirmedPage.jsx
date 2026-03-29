@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchMeeting } from "../api/meetings";
+import { fetchPublicMeeting } from "../api/meetings";
 import Card from "../components/ui/Card";
 import { formatDateTime } from "../utils/formatDate";
 
@@ -19,7 +19,7 @@ export default function ConfirmedPage() {
     }
     async function load() {
       try {
-        const res = await fetchMeeting(meetingId);
+        const res = await fetchPublicMeeting(meetingId);
         setMeeting(res.data);
       } catch {
         setError("Failed to load meeting details");
