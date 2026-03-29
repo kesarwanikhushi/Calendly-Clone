@@ -65,11 +65,10 @@ async function book(req, res, next) {
       },
     });
 
-    try {
-      await sendBookingConfirmation(meeting, eventType);
-    } catch (mailError) {
+    // Send email in the background so it doesn't block the API response
+    sendBookingConfirmation(meeting, eventType).catch(mailError => {
       console.error("Failed to send booking confirmation email:", mailError);
-    }
+    });
 
     res.status(201).json(meeting);
   } catch (err) {
@@ -170,11 +169,10 @@ async function rescheduleMeeting(req, res, next) {
       },
     });
 
-    try {
-      await sendRescheduleConfirmation(updatedMeeting, eventType);
-    } catch (mailError) {
+    // Send email in the background
+    sendRescheduleConfirmation(updatedMeeting, eventType).catch(mailError => {
       console.error("Failed to send reschedule confirmation email:", mailError);
-    }
+    });
 
     res.json(updatedMeeting);
   } catch (err) {
