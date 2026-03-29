@@ -7,7 +7,7 @@ export default function PublicLayout() {
         <h1 className="text-lg font-bold text-primary tracking-tight">Calendly</h1>
       </header>
       <main className="flex-1 flex items-start justify-center px-4 py-8">
-        <div className="w-full max-w-3xl">
+        <div className="w-full max-w-5xl">
           <Outlet />
         </div>
       </main>

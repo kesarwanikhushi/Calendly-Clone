@@ -48,16 +48,13 @@ export default function ConfirmedPage() {
 
   return (
     <Card className="p-8 text-center max-w-lg mx-auto">
-      <div className="w-16 h-16 rounded-full bg-success-light flex items-center justify-center mx-auto mb-5">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5">
+      <div className="w-20 h-20 rounded-full bg-[#10B981] flex items-center justify-center mx-auto mb-6 shadow-md">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 13l4 4L19 7" />
         </svg>
       </div>
 
-      <h2 className="text-xl font-bold text-text-primary mb-2">Meeting Confirmed</h2>
-      <p className="text-sm text-text-secondary mb-6">
-        A confirmation email has been sent to your inbox.
-      </p>
+      <h2 className="text-xl font-bold text-text-primary mb-6">Meeting Confirmed</h2>
 
       <div className="bg-surface rounded-lg p-5 text-left space-y-3">
         <div>
