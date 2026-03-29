@@ -1,5 +1,6 @@
 const prisma = require("../lib/prisma");
-const { parseISO, getDay, startOfDay, endOfDay } = require("date-fns");
+const { getDay } = require("date-fns");
+const { utcToZonedTime, zonedTimeToUtc } = require("date-fns-tz");
 const { computeFreeSlots } = require("../lib/slots");
 
 async function getSlots(req, res, next) {
@@ -15,9 +16,6 @@ async function getSlots(req, res, next) {
       return res.status(404).json({ error: "Event type not found" });
     }
 
-    const parsedDate = parseISO(date);
-    const dayOfWeek = getDay(parsedDate);
-
     // Default to the first schedule of the user if the eventType has no bound schedule
     let scheduleId = eventType.scheduleId;
     if (!scheduleId) {
@@ -29,23 +27,28 @@ async function getSlots(req, res, next) {
       scheduleId = defaultSchedule.id;
     }
 
+    // Load schedule to get timezone so we compute day-of-week and day bounds in the
+    // schedule's timezone (avoids off-by-one/day issues across zones).
+    const schedule = await prisma.schedule.findUnique({ where: { id: scheduleId } });
+    const timezone = schedule ? schedule.timezone : "UTC";
+
+    // Interpret the incoming date (YYYY-MM-DD) as the calendar date in the schedule timezone.
+    // Compute zoned midnight and derive the day-of-week from it.
+    const utcMidnightForDate = zonedTimeToUtc(`${date} 00:00:00`, timezone);
+    const zonedMidnight = utcToZonedTime(utcMidnightForDate, timezone);
+    const dayOfWeek = getDay(zonedMidnight);
+
     const override = await prisma.availabilityOverride.findFirst({
       where: { date, scheduleId },
     });
 
     let intervals = [];
-    let timezone;
 
     if (override) {
       if (override.isBlocked) {
         return res.json([]);
       }
       intervals.push({ startTime: override.startTime, endTime: override.endTime });
-
-      const sched = await prisma.schedule.findUnique({
-        where: { id: scheduleId },
-      });
-      timezone = sched ? sched.timezone : "UTC";
     } else {
       const availabilities = await prisma.availability.findMany({
         where: { dayOfWeek, scheduleId },
@@ -58,11 +61,12 @@ async function getSlots(req, res, next) {
       for (const avail of availabilities) {
         intervals.push({ startTime: avail.startTime, endTime: avail.endTime });
       }
-      timezone = availabilities[0].timezone || "UTC";
     }
 
-    const dayStart = startOfDay(parsedDate);
-    const dayEnd = endOfDay(parsedDate);
+    // Compute UTC bounds for the requested day in the schedule timezone so meeting queries
+    // use the correct time range.
+    const dayStart = zonedTimeToUtc(`${date} 00:00:00`, timezone);
+    const dayEnd = zonedTimeToUtc(`${date} 23:59:59.999`, timezone);
 
     const bookedMeetings = await prisma.meeting.findMany({
       where: {

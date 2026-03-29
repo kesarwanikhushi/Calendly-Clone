@@ -1,16 +1,14 @@
-const { addMinutes, parseISO, setHours, setMinutes, subMinutes } = require("date-fns");
+const { addMinutes, subMinutes } = require("date-fns");
 const { zonedTimeToUtc } = require("date-fns-tz");
 
 function computeFreeSlots(startTime, endTime, duration, bufferBefore, bufferAfter, bookedMeetings, date, timezone) {
   const [startH, startM] = startTime.split(":").map(Number);
   const [endH, endM] = endTime.split(":").map(Number);
 
-  const base = parseISO(date);
-  const localStart = setMinutes(setHours(base, startH), startM);
-  const localEnd = setMinutes(setHours(base, endH), endM);
-
-  const utcStart = zonedTimeToUtc(localStart, timezone);
-  const utcEnd = zonedTimeToUtc(localEnd, timezone);
+  // Construct UTC instants for the interval boundaries by interpreting the
+  // provided date and times in the given timezone.
+  const utcStart = zonedTimeToUtc(`${date} ${startTime}`, timezone);
+  const utcEnd = zonedTimeToUtc(`${date} ${endTime}`, timezone);
 
   const slots = [];
   let cursor = utcStart;
