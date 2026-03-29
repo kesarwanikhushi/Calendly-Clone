@@ -95,7 +95,16 @@ export default function BookingPage() {
     );
   }
 
-  if (notFound) {
+  if (error && !eventType) {
+    return (
+      <Card className="p-8 text-center">
+        <h2 className="text-xl font-semibold text-error mb-2">Error</h2>
+        <p className="text-sm text-text-secondary">{error}</p>
+      </Card>
+    );
+  }
+
+  if (notFound || !eventType) {
     return (
       <Card className="p-8 text-center">
         <h2 className="text-xl font-semibold text-text-primary mb-2">Event Not Found</h2>
