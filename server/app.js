@@ -16,6 +16,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Root route for health check
+app.get("/", (req, res) => {
+  res.send("Calendly Clone API is running");
+});
+
 app.use("/api/auth", authRouter);
 
 // Public routes for booking flow
