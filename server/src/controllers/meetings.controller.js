@@ -67,7 +67,11 @@ async function patch(req, res, next) {
         include: { eventType: { include: { user: true } }, answers: true },
       });
 
-      await sendCancellationNotification(updated, updated.eventType);
+      try {
+        await sendCancellationNotification(updated, updated.eventType);
+      } catch (mailError) {
+        console.error("Failed to send cancellation notification:", mailError);
+      }
       return res.json(updated);
     }
 
@@ -97,7 +101,11 @@ async function patch(req, res, next) {
         include: { eventType: { include: { user: true } }, answers: true },
       });
 
-      await sendRescheduleConfirmation(updated, updated.eventType);
+      try {
+        await sendRescheduleConfirmation(updated, updated.eventType);
+      } catch (mailError) {
+        console.error("Failed to send reschedule confirmation:", mailError);
+      }
       return res.json(updated);
     }
 

@@ -65,7 +65,11 @@ async function book(req, res, next) {
       },
     });
 
-    await sendBookingConfirmation(meeting, eventType);
+    try {
+      await sendBookingConfirmation(meeting, eventType);
+    } catch (mailError) {
+      console.error("Failed to send booking confirmation email:", mailError);
+    }
 
     res.status(201).json(meeting);
   } catch (err) {
@@ -166,7 +170,11 @@ async function rescheduleMeeting(req, res, next) {
       },
     });
 
-    await sendRescheduleConfirmation(updatedMeeting, eventType);
+    try {
+      await sendRescheduleConfirmation(updatedMeeting, eventType);
+    } catch (mailError) {
+      console.error("Failed to send reschedule confirmation email:", mailError);
+    }
 
     res.json(updatedMeeting);
   } catch (err) {
