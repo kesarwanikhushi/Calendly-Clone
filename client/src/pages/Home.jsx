@@ -6,6 +6,7 @@ import EventTypeCard from "../components/admin/EventTypeCard";
 import EventTypeForm from "../components/admin/EventTypeForm";
 import Modal from "../components/ui/Modal";
 import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 export default function Home() {
   const { user } = useAuth();
@@ -83,19 +84,36 @@ export default function Home() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">Event Types</h1>
-          <p className="text-sm text-text-secondary mt-1">Create and manage your scheduling events</p>
-          {user && (
-            <p className="text-sm text-primary mt-2">
-              Your public profile: <Link to={`/u/${user.id}`} className="hover:underline">{window.location.origin}/u/{user.id}</Link>
-            </p>
-          )}
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-text-primary">Scheduling</h1>
+            <p className="text-xs text-text-secondary mt-0.5">Scheduling made simple</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleCreate} id="create-event-type-btn">+ Create</Button>
+          </div>
         </div>
-        <Button onClick={handleCreate} id="create-event-type-btn">
-          + New Event Type
-        </Button>
+
+        <div className="mt-5 border-b border-border">
+          <nav className="flex gap-6 text-sm text-text-secondary pb-3">
+            <button className="text-primary font-medium border-b-2 border-primary pb-3">Event types</button>
+          </nav>
+        </div>
+
+        <div className="mt-5 flex items-center justify-between gap-4">
+          <div className="w-1/2">
+            <Input placeholder="Search event types" />
+          </div>
+          <div className="text-sm text-text-secondary">
+            {user && (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary-light flex items-center justify-center text-primary font-medium">{user.name?.[0] || "U"}</div>
+                <div>{user.name || user.email}</div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {error && (
@@ -126,7 +144,7 @@ export default function Home() {
           <Button onClick={handleCreate}>Create Event Type</Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {eventTypes.map((et) => (
             <EventTypeCard
               key={et.id}

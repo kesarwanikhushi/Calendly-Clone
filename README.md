@@ -79,3 +79,16 @@ mysql://root:password@localhost:3306/calendly
       /lib           Prisma client, slot computation, mailer
     /prisma          Schema and seed data
 ```
+
+  ## Recent UI updates
+
+  - Center scheduling UI updated to a cleaner layout: a single "Event types" tab, a search input, and full-width event cards with a colored left stripe and right-side actions.
+  - Files changed: `client/src/pages/Home.jsx`, `client/src/components/admin/EventTypeCard.jsx`.
+
+  To preview the changes locally, run the frontend dev server:
+
+  ```bash
+  cd client
+  npm install
+  npm run dev
+  ```
